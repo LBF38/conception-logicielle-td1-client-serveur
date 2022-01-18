@@ -6,8 +6,10 @@ package automateClient;
  */
 public class MainClient {
 
+
+
 	/**
-	 * Méthode principale : lance le programme
+	 * Méthode principale : lance le programme plop plop 
 	 * 
 	 * @param args
 	 */
