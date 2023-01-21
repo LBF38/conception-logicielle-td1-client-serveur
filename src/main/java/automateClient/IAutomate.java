@@ -1,17 +1,15 @@
-
 package automateClient;
 
 /**
  * API représentant un automate lié à un compte client, permettant de se
  * connecter à une banque, et de pouvoir effectuer un retrait
- * 
  */
 public interface IAutomate {
 
-	boolean connexionBanque();
+    boolean connectBanque();
 
-	void deconnexionBanque();
+    void disconnectBanque();
 
-	void retrait(int unRetrait);
+    void retrait(int unRetrait);
 
 }

@@ -1,88 +1,85 @@
 package automateClient;
 
-import java.beans.PropertyChangeSupport;
+import java.util.Observable;
 
 /**
  * Représente un automate lié à un compte client, permettant de se connecter à
  * une banque, et de pouvoir effectuer un retrait
- * 
+ * <p>
  * Cette classe représente également la somme en poche de l'utilisateur de cet
  * automate
- * 
- * @author sylvainguerin
  *
+ * @author sylvainguerin
  */
 
-public class Automate implements IAutomate {
+public class Automate extends Observable implements IAutomate {
+    public ClientTCP monClientTCP; // ## link monClientTCP
+    private int sommePoche; // ## attribute sommePoche
 
-	private int sommePoche; // ## attribute sommePoche
-	public ClientTCP monClientTCP; // ## link monClientTCP
+    public Automate(ClientTCP unClient, int somme, ClientGUI clientGUI) {
+        sommePoche = somme;
+        monClientTCP = unClient;
+        this.addObserver(clientGUI);
+    }
 
+    @Override
+    public boolean connectBanque() {
+        return monClientTCP.connexionServeur();
+    }
 
-	public Automate(ClientTCP unClient, int sommenpoche) {
+    @Override
+    public void disconnectBanque() {
+        monClientTCP.deconnexionServeur();
+    }
 
-		sommePoche = sommenpoche;
-		monClientTCP = unClient;
+    public int demandeDepot(int laSomme) {
+        System.out.println("****** demande depot");
 
-	}
+        int valeurCompte;
+        String valeurRetour = monClientTCP.transmettreChaine("depot " + laSomme);
+        valeurCompte = Integer.parseInt(valeurRetour);
+        depot(laSomme);
 
-	@Override
-	public boolean connexionBanque() {
-		return monClientTCP.connexionServeur();
-	}
+        return valeurCompte;
+    }
 
-	@Override
-	public void deconnexionBanque() {
-		monClientTCP.deconnexionServeur();
-	}
+    public int demandeRetrait(int laSomme) {
+        System.out.println("****** demande retrait");
 
-	public int demandeDepot(int laSomme) {
-
-		System.out.println("****** demande depot");
-
-		int derniereSommePoche = getSommePoche();
-		int valeurCompte = 0;
-		String valeurRetour = monClientTCP.transmettreChaine("depot " + laSomme);
-		valeurCompte = Integer.parseInt(valeurRetour);
-		depot(laSomme);
-
-		return valeurCompte;
-	}
-
-	public int demandeRetrait(int laSomme) {
-
-		int derniereSommePoche = getSommePoche();
-		int valeurRetrait = 0;
-		String valeurRetour = monClientTCP.transmettreChaine("retrait " + laSomme);
-		valeurRetrait = Integer.parseInt(valeurRetour);
-		retrait(valeurRetrait);
+        int valeurRetrait;
+        String valeurRetour = monClientTCP.transmettreChaine("retrait " + laSomme);
+        valeurRetrait = Integer.parseInt(valeurRetour);
+        retrait(valeurRetrait);
 
 
-		return valeurRetrait;
-	}
+        return valeurRetrait;
+    }
 
-	public void depot(int unDepot) {
-		sommePoche -= unDepot;
-		System.out.println("Depot de " + unDepot + " : somme en poche finale " + sommePoche);
-	}
+    public void depot(int unDepot) {
+        this.setSommePoche(this.getSommePoche() - unDepot);
+        System.out.println("Depot de " + unDepot + " : somme en poche finale " + sommePoche);
+        setChanged();
+        notifyObservers();
+    }
 
-	public int getSommePoche() {
-		return sommePoche;
-	}
+    public int getSommePoche() {
+        return sommePoche;
+    }
 
-	@Override
-	public void retrait(int unRetrait) {
-		sommePoche += unRetrait;
-		System.out.println("Retrait de " + unRetrait + " : somme en poche finale " + sommePoche);
-	}
+    public void setSommePoche(int sommePoche) {
+        this.sommePoche = sommePoche;
+    }
 
-	public void setSommePoche(int sommePoche) {
-		this.sommePoche = sommePoche;
-	}
+    @Override
+    public void retrait(int unRetrait) {
+        this.setSommePoche(this.getSommePoche() + unRetrait);
+        System.out.println("Retrait de " + unRetrait + " : somme en poche finale " + sommePoche);
+        setChanged();
+        notifyObservers();
+    }
 
-	@Override
-	public String toString() {
-		return "Somme en poche : " + sommePoche;
-	}
-
+    @Override
+    public String toString() {
+        return "Somme en poche : " + sommePoche;
+    }
 }

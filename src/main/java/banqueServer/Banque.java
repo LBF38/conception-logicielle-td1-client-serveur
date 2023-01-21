@@ -1,94 +1,104 @@
 package banqueServer;
 
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 /**
  * Représente une banque gérant un compte bancaire particulier
- *
  */
 public class Banque implements IBanque {
 
-	// Le compte bancaire géré
-	private final CompteBancaire leCompte;
+    // Le compte bancaire géré
+    private final CompteBancaire leCompte;
 
-	private String typeOperation;
-	private int derniereoperation;
+    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    public ServeurTCP serveurBanque;
+    private String typeOperation;
+    private int derniereoperation;
 
-	public ServeurTCP serveurBanque;
+    /**
+     * Création de l'objet Banque: crée le compte bancaire avec la somme initiale
+     *
+     * @param uneSomme
+     */
+    public Banque(int uneSomme) {
 
+        // Creation du compte bancaire
+        leCompte = new CompteBancaire(uneSomme);
+        this.setTypeOperation("Aucune Operation");
 
-	/**
-	 * Création de l'objet Banque: crée le compte bancaire avec la somme initiale
-	 * 
-	 * @param uneSomme
-	 */
-	public Banque(int uneSomme) {
+        // Initialisation du serveur TCP
+        serveurBanque = new ServeurTCP(6666);
+        serveurBanque.setBanque(this);
+    }
 
-		// Creation du compte bancaire
-		leCompte = new CompteBancaire(uneSomme);
-		this.setTypeOperation("Aucune Operation");
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+        leCompte.addPropertyChangeListener(listener);
+    }
 
-		// Initialisation du serveur TCP
-		serveurBanque = new ServeurTCP(6666);
-		serveurBanque.setBanque(this);
-	}
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.removePropertyChangeListener(listener);
+        leCompte.removePropertyChangeListener(listener);
+    }
 
+    @Override
+    public int getDerniereOperation() {
+        return derniereoperation;
+    }
 
-	@Override
-	public int getDerniereOperation() {
-		return derniereoperation;
-	}
+    public CompteBancaire getLeCompte() {
+        return leCompte;
+    }
 
-	public CompteBancaire getLeCompte() {
-		return leCompte;
-	}
+    public String getTypeOperation() {
+        return typeOperation;
+    }
 
-	public String getTypeOperation() {
-		return typeOperation;
-	}
+    public void setTypeOperation(String typeOperation) {
+        String oldTypeOperation = this.typeOperation;
+        this.typeOperation = typeOperation;
+        propertyChangeSupport.firePropertyChange("typeOperation", oldTypeOperation, typeOperation);
+    }
 
-	@Override
-	public synchronized int demandeRetrait(int unRetrait) {
-		int valeurRetiree;
+    @Override
+    public synchronized int demandeRetrait(int unRetrait) {
+        int valeurRetiree;
 
-		String dernierTypeOperation = typeOperation;
-		int valeurInitiale = leCompte.getSomme();
+        String dernierTypeOperation = typeOperation;
+        int valeurInitiale = leCompte.getSomme();
 
-		if (leCompte.getSomme() - unRetrait > 0) {
-			leCompte.setSomme(leCompte.getSomme() - unRetrait);
-			valeurRetiree = unRetrait;
-		} else {
-			valeurRetiree = unRetrait - leCompte.getSomme();
-			leCompte.setSomme(0);
-		}
-		typeOperation = "Retrait";
+        if (leCompte.getSomme() - unRetrait > 0) {
+            leCompte.setSomme(leCompte.getSomme() - unRetrait);
+            valeurRetiree = unRetrait;
+        } else {
+            valeurRetiree = unRetrait - leCompte.getSomme();
+            leCompte.setSomme(0);
+        }
+        this.setTypeOperation("Retrait");
 
-		return valeurRetiree;
-	}
+        return valeurRetiree;
+    }
 
-	@Override
-	public synchronized int demandeDepot(int unDepot) {
+    @Override
+    public synchronized int demandeDepot(int unDepot) {
 
-		String dernierTypeOperation = typeOperation;
-		int valeurInitiale = leCompte.getSomme();
+        String dernierTypeOperation = typeOperation;
+        int valeurInitiale = leCompte.getSomme();
 
-		leCompte.setSomme(leCompte.getSomme() + unDepot);
-		typeOperation = "Depot";
+        leCompte.setSomme(leCompte.getSomme() + unDepot);
+        this.setTypeOperation("Depot");
 
-		return unDepot;
-	}
+        return unDepot;
+    }
 
-	public void ouvrirBanque() {
-		serveurBanque.go();
-	}
+    public void ouvrirBanque() {
+        serveurBanque.go();
+    }
 
-	public void setTypeOperation(String typeOperation) {
-		this.typeOperation = typeOperation;
-	}
-
-	@Override
-	public String toString() {
-		return "La Banque possede un compte avec la somme de " + leCompte.getSomme();
-	}
+    @Override
+    public String toString() {
+        return "La Banque possede un compte avec la somme de " + leCompte.getSomme();
+    }
 
 }
