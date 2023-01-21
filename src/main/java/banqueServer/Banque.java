@@ -87,7 +87,7 @@ public class Banque implements IBanque {
         int valeurInitiale = leCompte.getSomme();
 
         leCompte.setSomme(leCompte.getSomme() + unDepot);
-        typeOperation = "Depot";
+        this.setTypeOperation("Depot");
 
         return unDepot;
     }
