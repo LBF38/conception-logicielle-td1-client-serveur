@@ -2,6 +2,8 @@ package banqueServer;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Observable;
+import java.util.Observer;
 
 //## dependency swing 
 //## class MontantBanqueGUI 
@@ -15,7 +17,7 @@ import javax.swing.JTextField;
  *
  */
 @SuppressWarnings("serial")
-public class MontantBanqueGUI extends JFrame {
+public class MontantBanqueGUI extends JFrame implements PropertyChangeListener {
 
 	private final JTextField sommeTextField; // ## link testField
 
@@ -39,5 +41,11 @@ public class MontantBanqueGUI extends JFrame {
 		getContentPane().setForeground(new java.awt.Color(255, 128, 0));
 	}
 
-
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (evt.getSource().getClass().equals(CompteBancaire.class)) {
+			int somme = ((CompteBancaire) evt.getSource()).getSomme();
+			sommeTextField.setText(String.valueOf(somme));
+		}
+	}
 }

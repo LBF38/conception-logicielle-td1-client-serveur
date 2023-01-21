@@ -16,11 +16,9 @@ public class MainServeur {
 		Banque banque = new Banque(10000);
 		System.out.println("Creation de la banque: " + banque);
 
-		// Création des deux interfaces graphiques
-		new MontantBanqueGUI(banque);
-		new DerniereOperationGUI(banque);
-
 		// Ouverture de la banque
+		banque.addPropertyChangeListener(new MontantBanqueGUI(banque));
+		banque.addPropertyChangeListener(new DerniereOperationGUI(banque));
 		banque.ouvrirBanque();
 	}
 

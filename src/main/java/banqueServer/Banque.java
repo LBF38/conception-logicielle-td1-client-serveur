@@ -1,5 +1,6 @@
 package banqueServer;
 
+import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 /**
@@ -11,11 +12,10 @@ public class Banque implements IBanque {
 	// Le compte bancaire géré
 	private final CompteBancaire leCompte;
 
-	private String typeOperation;
-	private int derniereoperation;
-
-	public ServeurTCP serveurBanque;
-
+    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    public ServeurTCP serveurBanque;
+    private String typeOperation;
+    private int derniereoperation;
 
 	/**
 	 * Création de l'objet Banque: crée le compte bancaire avec la somme initiale
@@ -33,6 +33,15 @@ public class Banque implements IBanque {
 		serveurBanque.setBanque(this);
 	}
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+        leCompte.addPropertyChangeListener(listener);
+    }
+
+	public void removePropertyChangeListener(PropertyChangeListener listener) {
+		propertyChangeSupport.removePropertyChangeListener(listener);
+        leCompte.removePropertyChangeListener(listener);
+	}
 
 	@Override
 	public int getDerniereOperation() {
@@ -47,21 +56,27 @@ public class Banque implements IBanque {
 		return typeOperation;
 	}
 
-	@Override
-	public synchronized int demandeRetrait(int unRetrait) {
-		int valeurRetiree;
+    public void setTypeOperation(String typeOperation) {
+        String oldTypeOperation = this.typeOperation;
+        this.typeOperation = typeOperation;
+        propertyChangeSupport.firePropertyChange("typeOperation", oldTypeOperation, typeOperation);
+    }
+
+    @Override
+    public synchronized int demandeRetrait(int unRetrait) {
+        int valeurRetiree;
 
 		String dernierTypeOperation = typeOperation;
 		int valeurInitiale = leCompte.getSomme();
 
-		if (leCompte.getSomme() - unRetrait > 0) {
-			leCompte.setSomme(leCompte.getSomme() - unRetrait);
-			valeurRetiree = unRetrait;
-		} else {
-			valeurRetiree = unRetrait - leCompte.getSomme();
-			leCompte.setSomme(0);
-		}
-		typeOperation = "Retrait";
+        if (leCompte.getSomme() - unRetrait > 0) {
+            leCompte.setSomme(leCompte.getSomme() - unRetrait);
+            valeurRetiree = unRetrait;
+        } else {
+            valeurRetiree = unRetrait - leCompte.getSomme();
+            leCompte.setSomme(0);
+        }
+        this.setTypeOperation("Retrait");
 
 		return valeurRetiree;
 	}
@@ -80,10 +95,6 @@ public class Banque implements IBanque {
 
 	public void ouvrirBanque() {
 		serveurBanque.go();
-	}
-
-	public void setTypeOperation(String typeOperation) {
-		this.typeOperation = typeOperation;
 	}
 
 	@Override

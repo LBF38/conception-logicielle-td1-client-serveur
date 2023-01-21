@@ -1,6 +1,7 @@
 
 package banqueServer;
 
+import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -16,7 +17,7 @@ import javax.swing.JTextField;
  *
  */
 @SuppressWarnings("serial")
-public class DerniereOperationGUI extends JFrame {
+public class DerniereOperationGUI extends JFrame implements PropertyChangeListener {
 
 	private final JTextField derniereOperationTextField;
 
@@ -37,4 +38,11 @@ public class DerniereOperationGUI extends JFrame {
 		getContentPane().setForeground(new java.awt.Color(255, 128, 0));
 	}
 
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getSource().getClass().equals(Banque.class)) {
+            String typeOperation = ((Banque) evt.getSource()).getTypeOperation();
+            derniereOperationTextField.setText(String.valueOf(typeOperation));
+        }
+    }
 }
