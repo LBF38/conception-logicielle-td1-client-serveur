@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -29,7 +31,7 @@ import javax.swing.border.LineBorder;
  * 
  */
 @SuppressWarnings("serial")
-public class ClientGUI extends JFrame {
+public class ClientGUI extends JFrame implements Observer {
 
 	/**
 	 * L'automate représenté par cette interface graphique
@@ -69,7 +71,7 @@ public class ClientGUI extends JFrame {
 		ClientTCP clienttcp = new ClientTCP("localhost", 6666);
 
 		// Et l'automate (le modèle) de l'interface graphique
-		automate = new Automate(clienttcp, 0);
+		automate = new Automate(clienttcp, 0, this);
 		System.out.println("Creation de l'automate: " + automate);
 
 
@@ -364,4 +366,9 @@ public class ClientGUI extends JFrame {
 	}
 
 
+	@Override
+	public void update(Observable o, Object arg) {
+		this.setSommenpoche(((Automate) o).getSommePoche());
+		this.jTextFieldSommenpoche.setText("" + this.getSommenpoche());
+	}
 }
