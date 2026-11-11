@@ -10,6 +10,8 @@ public class Banque implements IBanque {
 
     // Le compte bancaire géré
     private final CompteBancaire leCompte;
+    private final DepositStrategy depositStrategy;
+    private final WithdrawStrategy withdrawStrategy;
 
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     public ServeurTCP serveurBanque;
@@ -26,6 +28,10 @@ public class Banque implements IBanque {
         // Creation du compte bancaire
         leCompte = new CompteBancaire(uneSomme);
         this.setTypeOperation("Aucune Operation");
+
+        // Creation des strategies
+        depositStrategy = new DelayedDeposit(5000);
+        withdrawStrategy = new LimitedWithdraw();
 
         // Initialisation du serveur TCP
         serveurBanque = new ServeurTCP(6666);
@@ -63,8 +69,12 @@ public class Banque implements IBanque {
 
     @Override
     public synchronized int demandeRetrait(int unRetrait) {
+        try{
+            withdrawStrategy.withdraw(unRetrait);
+        } catch (IllegalArgumentException exception) {
+            return -1;
+        }
         int valeurRetiree;
-
         String dernierTypeOperation = typeOperation;
         int valeurInitiale = leCompte.getSomme();
 
@@ -85,8 +95,7 @@ public class Banque implements IBanque {
 
         String dernierTypeOperation = typeOperation;
         int valeurInitiale = leCompte.getSomme();
-
-        leCompte.setSomme(leCompte.getSomme() + unDepot);
+        depositStrategy.deposit(leCompte, leCompte.getSomme() + unDepot);
         this.setTypeOperation("Depot");
 
         return unDepot;
